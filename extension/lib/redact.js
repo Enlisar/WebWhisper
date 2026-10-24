@@ -1,5 +1,4 @@
-// Pattern-based redaction of sensitive text. Runs in the extension AND on the server
-// (defence in depth). Source of truth: /shared. Run `node scripts/sync-shared.js` after edits.
+
 
 const digits = (s) => (s.match(/\d/g) || []).length;
 
@@ -22,7 +21,6 @@ export function redactText(input, { tokens = true } = {}) {
   return s.replace(OTP, '$1$2[removed]');
 }
 
-// Deep-redact every string in a JSON-like value. URL fields skip the token rule.
 export function scrub(value, key = '', depth = 0) {
   if (depth > 8) return undefined;
   if (typeof value === 'string') return redactText(value, { tokens: !/^(href|url)$/i.test(key) });

@@ -17,6 +17,29 @@ test('"my password is X" is masked', () => {
   assert.ok(!r.masked.includes('hunter2'));
 });
 
+test('"my phone number is X. and continue" is masked and preserved in values', () => {
+  const r = maskUtterance('my phone number is 9989288681. and continue');
+  assert.ok(!r.masked.includes('9989288681'));
+  assert.match(r.masked, /my phone number is \{\{V1\}\}\. and continue/);
+  assert.equal(r.values.V1, '9989288681');
+  assert.match(r.display, /9989288681/);
+  assert.equal(r.secretContext, false);
+});
+
+test('direct typing and contact forms without explicit field', () => {
+  const r1 = maskUtterance('type 9989288681 and continue');
+  assert.equal(r1.values.V1, '9989288681');
+  assert.equal(r1.masked, 'type {{V1}} and continue');
+
+  const r2 = maskUtterance('my email is aaron@example.com and continue');
+  assert.equal(r2.values.V1, 'aaron@example.com');
+  assert.equal(r2.masked, 'my email is {{V1}} and continue');
+
+  const r3 = maskUtterance('9989288681 and continue');
+  assert.equal(r3.values.V1, '9989288681');
+  assert.equal(r3.masked, '{{V1}} and continue');
+});
+
 test('typed text in a normal field is masked but displayed', () => {
   const r = maskUtterance('type hello world in the search box');
   assert.ok(!r.masked.includes('hello world'));

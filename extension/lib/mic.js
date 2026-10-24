@@ -12,6 +12,10 @@ export class Mic {
   get on() { return this.want; }
 
   async permissionState() {
+    try {
+      const stored = await chrome.storage?.local?.get('ww_mic_granted');
+      if (stored?.ww_mic_granted) return 'granted';
+    } catch {}
     try { return (await navigator.permissions.query({ name: 'microphone' })).state; } catch { return 'prompt'; }
   }
 
@@ -21,9 +25,10 @@ export class Mic {
     try {
       const stream = await Promise.race([
         navigator.mediaDevices.getUserMedia({ audio: true }),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000)),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 1500)),
       ]);
       stream.getTracks().forEach((t) => t.stop());
+      await chrome.storage?.local?.set({ ww_mic_granted: true }).catch(() => {});
       return true;
     } catch {
       return false; // side panels often can't show the prompt; caller opens the permission tab
@@ -68,6 +73,7 @@ export class Mic {
     };
     rec.onerror = (e) => {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        chrome.storage?.local?.remove('ww_mic_granted').catch(() => {});
         this.want = false; this.onState(false); this.onNeedPermission();
       } else if (e.error === 'audio-capture') {
         this.want = false; this.onState(false); this.onError('I can\u2019t find a microphone. Check that one is plugged in and selected in Chrome.');
