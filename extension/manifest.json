@@ -14,8 +14,14 @@
   ],
   "commands": {
     "open-panel": { "suggested_key": { "default": "Alt+Shift+W" }, "description": "Open WebWhisper" },
-    "toggle-mic": { "suggested_key": { "default": "Alt+Shift+M" }, "description": "Turn the microphone on or off" },
+    "toggle-mic": { "suggested_key": { "default": "Alt+J" }, "description": "Turn the microphone on or off" },
     "stop-speech": { "suggested_key": { "default": "Alt+Shift+S" }, "description": "Stop speaking" }
   },
-  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" }
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "web_accessible_resources": [
+    {
+      "resources": ["sidepanel.html", "sidepanel.css", "sidepanel.js", "config.js", "lib/*", "icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

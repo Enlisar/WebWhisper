@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
+<div id="app" class="app-root">
 <header class="top">
   <div class="brand">
     <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10v4M9 6v12M13 3v18M17 8v8M21 11v2" /></svg>
@@ -29,14 +30,14 @@
 
 <main id="log" class="log" tabindex="0" aria-label="Conversation">
   <section id="empty" class="empty">
-    <h2>Ask me about this page</h2>
-    <p>Speak or type. I can explain what&rsquo;s here, and click, fill in and scroll when you ask.</p>
+    <h2>Welcome to WebWhisper</h2>
+    <p>Your voice-first web companion. Press <kbd>Alt+J</kbd> anytime to unmute or mute your microphone.</p>
     <div class="try">
       <button type="button" class="chip" data-say="What is on this page?">What is on this page?</button>
       <button type="button" class="chip" data-say="How many sections are there?">How many sections are there?</button>
       <button type="button" class="chip" data-say="What can I click here?">What can I click here?</button>
     </div>
-    <p class="hint">Press <kbd>Ctrl</kbd> while your mouse is over something and I&rsquo;ll describe it.</p>
+    <p class="hint">Hold <kbd>Ctrl</kbd> and hover over any element to read it aloud &middot; Press <kbd>Alt+J</kbd> to unmute.</p>
   </section>
 </main>
 
@@ -61,6 +62,7 @@
     </button>
   </div>
 </footer>
+</div>
 <script type="module" src="sidepanel.js"></script>
 </body>
 </html>

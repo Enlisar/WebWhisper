@@ -22,7 +22,7 @@ shared/      Redaction + masking code (copied into extension/ and server/ by `np
 3. **Microphone**: press **Mic**. The first time, a tab opens asking for permission. Allow it once; it applies to every site. Press **Mic** again to mute.
 4. Optional: copy the extension's ID from `chrome://extensions` into `ALLOWED_EXTENSION_ID` in `server/.env` so only your extension can call the server.
 
-Shortcuts (change at `chrome://extensions/shortcuts`): **Alt+Shift+W** open · **Alt+Shift+M** mic on/off · **Alt+Shift+S** stop speaking · **Esc** stop speaking · **Ctrl** (alone) describe what is under the mouse.
+Shortcuts (change at `chrome://extensions/shortcuts`): **Alt+Shift+W** open · **Alt+J** mic on/off · **Alt+Shift+S** stop speaking · **Esc** stop speaking · **Ctrl + hover** (hold Ctrl and hover over an element) describe and read aloud what it says and does.
 
 Voice commands handled instantly on-device: "stop", "repeat that", "faster", "slower", "stop listening".
 

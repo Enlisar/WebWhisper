@@ -9,6 +9,7 @@ export function prepareForSpeech(text) {
   return String(text || '')
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/[*_`#>~|]+/g, ' ')
+    .replace(/\+/g, ' plus ')
     .replace(/https?:\/\/(?:www\.)?([^\s/]+)[^\s]*/gi, (m, host) => host.replace(/\./g, ' dot '))
     .replace(/\be\.g\./gi, 'for example')
     .replace(/\bi\.e\./gi, 'that is')
@@ -92,11 +93,16 @@ export class Speaker {
     const s = this.queue.shift();
     if (!s) { this.active = false; this.onEnd(); return; }
     const u = new SpeechSynthesisUtterance(s);
+    if (!this.voice && synth.getVoices().length) {
+      const vs = synth.getVoices();
+      this.voice = [...vs].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
+    }
     if (this.voice) { u.voice = this.voice; u.lang = this.voice.lang; }
     u.rate = this.rate;
     u.pitch = /\?\s*$/.test(s) ? 1.07 : 1;
     u.onend = () => { if (tok === this.token) this._next(); };
     u.onerror = (e) => { if (tok === this.token && e.error !== 'interrupted' && e.error !== 'canceled') this._next(); };
+    try { if (synth.paused) synth.resume(); } catch {}
     synth.speak(u);
   }
 

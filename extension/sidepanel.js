@@ -7,7 +7,7 @@ import { tone } from './lib/tones.js';
 
 const $ = (s) => document.querySelector(s);
 const els = {
-  log: $('#log'), empty: $('#empty'), input: $('#input'), form: $('#composer'), mic: $('#mic'), micLabel: $('#micLabel'),
+  app: $('#app'), log: $('#log'), empty: $('#empty'), input: $('#input'), form: $('#composer'), mic: $('#mic'), micLabel: $('#micLabel'),
   stop: $('#stop'), status: $('#status'), interim: $('#interim'), site: $('#site'), plus: $('#fsPlus'), minus: $('#fsMinus'), banner: $('#banner'),
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -61,6 +61,19 @@ function render(m) {
 }
 
 function addMessage(m) {
+  if (m.label === 'Under your pointer' && state.messages.length > 0) {
+    const last = state.messages[state.messages.length - 1];
+    if (last.label === 'Under your pointer') {
+      last.text = m.text;
+      const lastEl = els.log.querySelector('.msg.assistant:last-child .txt');
+      if (lastEl) {
+        lastEl.textContent = m.text;
+        els.log.scrollTop = els.log.scrollHeight;
+        chrome.storage.session.set({ ww_messages: state.messages }).catch(() => {});
+        return;
+      }
+    }
+  }
   state.messages.push(m);
   if (state.messages.length > 80) state.messages.shift();
   render(m);
@@ -135,8 +148,21 @@ const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); 
 const safeUrl = (u) => { try { return /^https?:$/.test(new URL(u).protocol); } catch { return false; } };
 
 async function activeTab() {
-  const [t] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  return t;
+  try {
+    const [t] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (t && scriptable(t.url)) return t;
+
+    const allActive = await chrome.tabs.query({ active: true });
+    const webTab = allActive.find((tab) => tab.url && scriptable(tab.url));
+    if (webTab) return webTab;
+
+    const normalTab = allActive.find((tab) => tab.url && !tab.url.startsWith('chrome-extension://'));
+    if (normalTab) return normalTab;
+    return t;
+  } catch {
+    const [t] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    return t;
+  }
 }
 async function ensureContent(tabId) {
   const ping = () => chrome.tabs.sendMessage(tabId, { ww: true, type: 'ping' }, { frameId: 0 }).then((r) => !!r?.ok).catch(() => false);
@@ -357,12 +383,16 @@ async function onCtrl(info) {
   const token = ++state.ctrlToken;
   setStatus('thinking');
   let text = composeLocal(info);
-  if (info.kind !== 'input' && info.kind !== 'button' && info.kind !== 'link') {
+
+  // If the element has vague labels, is an image/file/diagram link, or a section container, let Gemini explain it naturally in simple terms!
+  const needsGemini = !info.label || info.isImageLink || info.vague || (info.kind === 'section' && (!info.text || info.text.length > 250));
+  if (needsGemini) {
     try {
-      const r = await api('/api/narrate', { info }, { timeout: 3200, track: false });
-      if (r.say) text = r.say;
-    } catch { /* local description is fine */ }
+      const r = await api('/api/narrate', { info }, { timeout: 2200, track: false });
+      if (r?.say) text = r.say;
+    } catch { /* local description is ready fallback */ }
   }
+
   if (token !== state.ctrlToken) return;
   setStatus();
   say(text, { interrupt: true, label: 'Under your pointer' });
@@ -392,9 +422,16 @@ els.stop.addEventListener('click', stopAll);
 els.plus.addEventListener('click', () => applyFont(state.fsIndex + 1));
 els.minus.addEventListener('click', () => applyFont(state.fsIndex - 1));
 document.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => submit(c.dataset.say, 'typed')));
-addEventListener('keydown', (e) => { if (e.key === 'Escape') stopAll(); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') stopAll();
+  if (e.altKey && (e.key === 'j' || e.key === 'J') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    toggleMic();
+  }
+});
 chrome.tabs.onActivated.addListener(refreshSite);
 chrome.tabs.onUpdated.addListener((id, ch, tab) => { if (tab.active && (ch.status === 'complete' || ch.title)) refreshSite(); });
+chrome.windows?.onFocusChanged?.addListener(() => { refreshSite(); });
 
 // ---------- startup ----------
 (async function init() {
@@ -403,13 +440,15 @@ chrome.tabs.onUpdated.addListener((id, ch, tab) => { if (tab.active && (ch.statu
   if (local.ww_rate) speaker.rate = local.ww_rate;
 
   const sess = await chrome.storage.session.get(['ww_messages', 'ww_pending_command']);
-  if (Array.isArray(sess.ww_messages) && sess.ww_messages.length) {
+  const welcome = 'Welcome to WebWhisper! I\u2019m your voice-first web companion. You can press Alt + J on your keyboard anytime to unmute or mute your microphone, or use the mic button below. Ask me anything about this page, or tell me what to click or fill in.';
+
+  if (Array.isArray(sess.ww_messages) && sess.ww_messages.length && sess.ww_messages.some((m) => m.role === 'user')) {
     state.messages = sess.ww_messages;
     state.messages.forEach(render);
   } else {
-    const hello = 'Hi, I\u2019m WebWhisper. Press the microphone button or type, and ask me about this page.';
-    addMessage({ role: 'assistant', text: hello });
-    speaker.speak(hello);
+    state.messages = [];
+    addMessage({ role: 'assistant', text: welcome });
+    speaker.speak(welcome);
   }
   setStatus();
   refreshSite();
