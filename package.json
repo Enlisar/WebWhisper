@@ -1,0 +1,1 @@
+{ "name": "webwhisper", "private": true, "type": "module", "scripts": { "sync": "node scripts/sync-shared.js" } }
