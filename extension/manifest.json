@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "WebWhisper",
+  "version": "0.1.0",
+  "description": "A voice-first companion that explains web pages and does things on them for you.",
+  "minimum_chrome_version": "116",
+  "permissions": ["sidePanel", "tabs", "scripting", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Open WebWhisper" },
+  "content_scripts": [
+    { "matches": ["<all_urls>"], "js": ["content.js"], "run_at": "document_idle", "all_frames": true }
+  ],
+  "commands": {
+    "open-panel": { "suggested_key": { "default": "Alt+Shift+W" }, "description": "Open WebWhisper" },
+    "toggle-mic": { "suggested_key": { "default": "Alt+Shift+M" }, "description": "Turn the microphone on or off" },
+    "stop-speech": { "suggested_key": { "default": "Alt+Shift+S" }, "description": "Stop speaking" }
+  },
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" }
+}
