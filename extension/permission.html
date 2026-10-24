@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Allow microphone · WebWhisper</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080909;color:#fff;font-family:Manrope,Poppins,system-ui,sans-serif}
+  main{max-width:34rem;padding:2rem;background:#111817;border:1px solid rgba(166,174,171,.18);border-radius:4px}
+  h1{margin:0 0 .75rem;font-size:1.6rem;font-weight:800}
+  p{color:#A6AEAB;line-height:1.6;font-size:1.1rem}
+  button{margin-top:1rem;padding:.9rem 1.4rem;font:inherit;font-weight:700;font-size:1.1rem;background:#59D7BC;color:#080909;border:0;border-radius:4px;cursor:pointer}
+  button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+  #msg{color:#fff;margin-top:1rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>Allow the microphone</h1>
+  <p>WebWhisper needs your permission to hear you. Chrome will ask once, and the answer applies to every website.</p>
+  <p>If you see a prompt at the top left, choose <strong style="color:#fff">Allow while visiting the site</strong>.</p>
+  <button id="go" type="button">Allow microphone</button>
+  <p id="msg" role="status" aria-live="polite"></p>
+</main>
+<script src="permission.js"></script>
+</body>
+</html>
